@@ -62,6 +62,25 @@ export default function App() {
   const [selectedArId, setSelectedArId] = useState('bell');
   const [toast, setToast] = useState('');
 
+  const [arIndex, setArIndex] = useState(0);
+  const [arStage, setArStage] = useState('processing'); // 'processing' | 'detected'
+
+  useEffect(() => {
+    if (activeModal !== 'ar') return;
+    setArStage('processing');
+    const timer = setTimeout(() => {
+      setArStage('detected');
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [activeModal, arIndex]);
+
+  const handleRetryAr = () => {
+    setArStage('processing');
+    setArIndex((prev) => (prev + 1) % AR_OBJECTS.length);
+  };
+
+  const currentArObject = AR_OBJECTS[arIndex] || AR_OBJECTS[0];
+
   useEffect(() => {
     try {
       localStorage.setItem(
@@ -1048,47 +1067,120 @@ export default function App() {
             </div>
 
             {activeModal === 'ar' && (
-              <div className="mt-3 space-y-3 text-xs">
-                <div className="flex items-center gap-2 rounded-xl bg-slate-900 p-3 text-white">
-                  <Camera className="h-5 w-5 text-amber-300" />
-                  <span>
-                    Select a detected hotel object to inspect hospitality
-                    vocabulary:
-                  </span>
+              <div className="mt-3 overflow-hidden rounded-3xl bg-gradient-to-b from-[#17256b] via-[#2845b8] to-[#5888f2] p-5 text-white shadow-inner">
+                {/* Header Status */}
+                <div className="flex items-center justify-between">
+                  <div className="w-6" />
+                  <h4 className="text-center text-base font-extrabold tracking-wide text-amber-400 sm:text-lg">
+                    {arStage === 'processing'
+                      ? 'AR Scanner is processing...'
+                      : 'Object Identified!'}
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal(null)}
+                    className="rounded-full bg-white/15 p-1 text-white hover:bg-white/25"
+                    aria-label="Close AR"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {AR_OBJECTS.map((obj) => (
-                    <button
-                      key={obj.id}
-                      onClick={() => setSelectedArId(obj.id)}
-                      className={`rounded-lg px-2.5 py-1.5 font-bold ${
-                        selectedArId === obj.id
-                          ? 'bg-[#173a7a] text-white'
-                          : 'bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      {obj.label}
-                    </button>
-                  ))}
+
+                {/* Camera Viewfinder Frame dengan 4 Sudut Kuning */}
+                <div className="relative mx-auto mt-4 max-w-[270px] p-3">
+                  {/* Sudut Kiri Atas */}
+                  <span className="pointer-events-none absolute left-0 top-0 h-8 w-8 border-l-[3px] border-t-[3px] border-amber-400" />
+                  {/* Sudut Kanan Atas */}
+                  <span className="pointer-events-none absolute right-0 top-0 h-8 w-8 border-r-[3px] border-t-[3px] border-amber-400" />
+                  {/* Sudut Kiri Bawah */}
+                  <span className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 border-b-[3px] border-l-[3px] border-amber-400" />
+                  {/* Sudut Kanan Bawah */}
+                  <span className="pointer-events-none absolute bottom-0 right-0 h-8 w-8 border-b-[3px] border-r-[3px] border-amber-400" />
+
+                  {/* Layar Kamera Simulasi */}
+                  <div className="relative h-64 w-full overflow-hidden rounded-2xl border-2 border-slate-900 bg-slate-900 shadow-xl">
+                    <img
+                      src={currentArObject.image}
+                      alt={currentArObject.label}
+                      className="h-full w-full object-cover"
+                    />
+
+                    {/* Overlay Gelap Tipis + Crosshair + di Tengah */}
+                    <div className="absolute inset-0 bg-black/15">
+                      {/* Garis Scan Beranimasi saat Processing */}
+                      {arStage === 'processing' && (
+                        <div className="absolute inset-x-3 top-1/3 h-0.5 animate-pulse bg-amber-300 shadow-[0_0_12px_#fbbf24]" />
+                      )}
+
+                      {/* Crosshair + Kuning di Tengah */}
+                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                        <div className="relative flex h-8 w-8 items-center justify-center">
+                          <span className="absolute h-6 w-[2px] bg-amber-400" />
+                          <span className="absolute h-[2px] w-6 bg-amber-400" />
+                        </div>
+                      </div>
+
+                      {/* Shutter Button Simulasi di Bawah Layar Kamera */}
+                      <div className="absolute bottom-3 inset-x-0 flex items-center justify-center gap-3">
+                        <span className="h-2 w-2 rounded-full bg-white/80" />
+                        <button
+                          type="button"
+                          onClick={() => setArStage('detected')}
+                          title="Capture Object"
+                          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-white/30 backdrop-blur-xs transition hover:scale-105"
+                        >
+                          <span className="h-5 w-5 rounded-full bg-white" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-extrabold text-slate-900">
-                      {selectedArObject.label}
+
+                {/* Kotak Instruksi atau Hasil Vocabulary */}
+                {arStage === 'processing' ? (
+                  <div className="mx-auto mt-4 max-w-[270px] rounded-xl bg-white px-4 py-2.5 text-center text-xs font-semibold leading-snug text-slate-800 shadow">
+                    Align your camera to the center of the object to ease identification
+                  </div>
+                ) : (
+                  <div className="mx-auto mt-4 max-w-[270px] rounded-xl bg-white p-3 text-slate-800 shadow">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                          Vocabulary Matched
+                        </div>
+                        <div className="text-sm font-extrabold text-slate-900">
+                          {currentArObject.label}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => speakText(currentArObject.label)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-[#173a7a] px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-[#102957]"
+                      >
+                        <Volume2 className="h-3.5 w-3.5" /> Audio
+                      </button>
+                    </div>
+                    <div className="mt-1 text-xs font-semibold text-slate-700">
+                      Arti: {currentArObject.idMeaning}
+                    </div>
+                    <p className="mt-1 text-[11px] leading-snug text-slate-500">
+                      {currentArObject.context}
+                    </p>
+                  </div>
+                )}
+
+                {/* Tombol RETRY Khas Desain */}
+                <div className="mt-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleRetryAr}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#13297a] pl-4 pr-1.5 py-1 text-xs font-extrabold tracking-wider text-white shadow-md transition hover:bg-[#0e1f5c]"
+                  >
+                    <span>RETRY</span>
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-slate-900">
+                      <RotateCcw className="h-3.5 w-3.5 stroke-[2.5]" />
                     </span>
-                    <button
-                      onClick={() => speakText(selectedArObject.label)}
-                      className="inline-flex items-center gap-1 rounded-lg bg-[#1e4b99] px-2.5 py-1 text-[11px] font-bold text-white"
-                    >
-                      <Volume2 className="h-3 w-3" /> Pronounce
-                    </button>
-                  </div>
-                  <div className="mt-1 font-medium text-slate-700">
-                    Arti: {selectedArObject.idMeaning}
-                  </div>
-                  <p className="mt-1 text-slate-500">
-                    {selectedArObject.context}
-                  </p>
+                  </button>
                 </div>
               </div>
             )}

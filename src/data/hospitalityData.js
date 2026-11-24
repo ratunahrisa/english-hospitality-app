@@ -258,21 +258,30 @@ export const DEPARTMENTS = [
 
 export const AR_OBJECTS = [
   {
+    id: 'armchair',
+    label: 'Leather Armchair',
+    idMeaning: 'Kursi Berlengan Kulit (Lounge Chair)',
+    context:
+      'Placed in the hotel lobby or executive lounge for guest comfort while waiting.',
+    image:
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=700&q=80',
+  },
+  {
     id: 'bell',
     label: 'Reception Bell',
     idMeaning: 'Bel Resepsionis',
-    context: 'Used at the front desk to signal staff assistance.',
-  },
-  {
-    id: 'keycard',
-    label: 'Room Keycard',
-    idMeaning: 'Kartu Akses Kamar',
-    context: 'Electronic card used to unlock guest rooms and elevators.',
+    context:
+      'Used at the front desk to politely alert reception staff when assistance is needed.',
+    image:
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=700&q=80',
   },
   {
     id: 'towel',
-    label: 'Bath Towel',
-    idMeaning: 'Handuk Mandi',
-    context: 'Provided in guest bathrooms and replenished daily by housekeeping.',
+    label: 'Folded Bath Towel',
+    idMeaning: 'Handuk Mandi Lipat',
+    context:
+      'Prepared in guest rooms and replenished daily by the housekeeping team.',
+    image:
+      'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=700&q=80',
   },
 ];
